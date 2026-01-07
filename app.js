@@ -18,7 +18,7 @@ app.get("/api/download", (req, res) => {
 
   const outputPath = "/tmp/video.mp4"; // temp folder is best
 
-  const command = `yt-dlp "${videoURL}" -o "${outputPath}" --merge-output-format mp4 --no-check-certificate`;
+  const command = `yt-dlp --cookies-from-browser chrome --js-runtimes "deno" "${videoURL}" -o "${outputPath}" --merge-output-format mp4 --no-check-certificate`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 200 }, (error) => {
     if (error) {
