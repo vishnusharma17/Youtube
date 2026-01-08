@@ -85,66 +85,79 @@
 </div>
 
 <script>
-  function previewVideo(){
-    const url = document.getElementById("videoURL").value.trim();
-    const preview = document.getElementById("preview");
-
-    if(url.includes("youtube.com/shorts")){
-      const id = url.split("shorts/")[1].split("?")[0];
-      preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
-    } else if(url.includes("instagram.com")){
-      preview.innerHTML = `<video controls style="width:100%;border-radius:14px;">
-          <source src="${url}" type="video/mp4">
-        </video>`;
-    } else {
-      preview.innerHTML = `<p class="error">Preview not supported for this URL</p>`;
+function extractYouTubeId(url) {
+  try {
+    if (url.includes("shorts/")) {
+      return url.split("shorts/")[1].split("?")[0];
     }
+    if (url.includes("watch?v=")) {
+      return new URL(url).searchParams.get("v");
+    }
+    if (url.includes("youtu.be/")) {
+      return url.split("youtu.be/")[1].split("?")[0];
+    }
+  } catch (e) {}
+  return null;
+}
 
-    preview.style.display="block";
-    preview.style.display="block";
-    document.getElementById("downloadBtn").style.display="block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="none";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-    document.getElementById("downloadBtn").style.display="inline-block";
-
-    preview.style.display="block";
-    document.getElementById("downloadBtn").style.display="block";
-  }
-
- async function downloadVideo() {
+function previewVideo() {
   const url = document.getElementById("videoURL").value.trim();
-  const apiURL = "/api/download?url=" + encodeURIComponent(url);
+  const preview = document.getElementById("preview");
 
-  const res = await fetch(apiURL);
-  const data = await res.json();
+  const ytId = extractYouTubeId(url);
 
-  // Agar fallback aya ho to browser me direct download karo
-  if (data.fallback === "browser") {
-    const videoId = url.split("shorts/")[1].split("?")[0];
-    const cmd = `https://inv.nadeko.net/latest_version?id=${videoId}&itag=22`;
-    const a = document.createElement("a");
-    a.href = cmd;
-    a.download = "shorts-video.mp4";
-    a.click();
+  if (ytId) {
+    preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe>`;
+    preview.style.display = "block";
+    document.getElementById("downloadBtn").style.display = "block";
     return;
   }
 
-  alert("Download failed: " + data.error);
+  if (url.includes("instagram.com")) {
+    preview.innerHTML = `<video controls style="width:100%;border-radius:14px;">
+      <source src="${url}" type="video/mp4">
+    </video>`;
+    preview.style.display = "block";
+    document.getElementById("downloadBtn").style.display = "block";
+    return;
+  }
+
+  preview.innerHTML = `<p class="error">Invalid or unsupported URL</p>`;
+  preview.style.display = "block";
 }
 
+async function downloadVideo() {
+  const url = document.getElementById("videoURL").value.trim();
+  const ytId = extractYouTubeId(url);
+
+  // Try server first
+  const res = await fetch("/api/download?url=" + encodeURIComponent(url));
+  const data = await res.json();
+
+  // Server fallback → browser download
+  if (data.fallback === "browser") {
+    if (!ytId) {
+      alert("No check ID (Invalid YouTube URL)");
+      return;
+    }
+
+    // Browser-safe Shorts download
+    const mirror = `https://inv.nadeko.net/latest_version?id=${ytId}&itag=22`;
+    const a = document.createElement("a");
+    a.href = mirror;
+    a.download = "shorts-video.mp4";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+
+  if (data.error) {
+    alert(data.error);
+  }
+}
 </script>
+
 
 </body>
 </html>
