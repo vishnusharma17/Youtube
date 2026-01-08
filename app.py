@@ -16,38 +16,38 @@ def download_api():
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
     try:
-        result = subprocess.run([
+        subprocess.run([
             "yt-dlp",
             url,
             "-f", "b",
             "-o", filepath,
             "--merge-output-format", "mp4",
             "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0",
-            "--js-runtimes", "deno"
+            "--user-agent", "Mozilla/5.0"
         ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        print("Download STDOUT:", result.stdout.decode())
-        print("Download STDERR:", result.stderr.decode())
 
     except subprocess.CalledProcessError as e:
         err = e.stderr.decode()
 
-        # Agar bot verification aaye, to server download skip karke browser fallback allow karo
+        # Bot/JS block aaye to browser fallback
         if "not a bot" in err or "Sign in to confirm" in err or "JS runtime" in err:
-            return jsonify({
-                "error": "Shorts server download blocked. Please preview & download from browser.",
-                "fallback": "browser"
-            }), 200
+            return jsonify({"fallback": "browser"}), 200
 
         return jsonify({"error": "Download failed: " + err}), 500
 
     if not os.path.exists(filepath):
-        return jsonify({"error": "File not created"}), 500
+        return jsonify({"fallback": "browser"}), 200
 
-    return send_file(filepath, as_attachment=True, download_name="video.mp4")
+    response = send_file(filepath, as_attachment=True, download_name="video.mp4")
 
-@app.route("/", methods=["GET","POST"])
+    try:
+        os.remove(filepath)
+    except:
+        pass
+
+    return response
+
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 

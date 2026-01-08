@@ -1,163 +1,156 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shorts & Reels Downloader</title>
-  <style>
-    body{
-      font-family:Poppins,sans-serif;
-      background:#fafafa;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      margin:0;
-    }
-    .card{
-      background:white;
-      width:90%;
-      max-width:420px;
-      padding:22px;
-      border-radius:16px;
-      box-shadow:0 4px 14px rgba(0,0,0,0.08);
-      text-align:center;
-    }
-    input{
-      width:95%;
-      padding:14px;
-      border:1px solid #ddd;
-      border-radius:12px;
-      font-size:15px;
-      outline:none;
-    }
-    button{
-      width:100%;
-      padding:14px;
-      border:none;
-      border-radius:12px;
-      font-size:15px;
-      font-weight:500;
-      margin-top:15px;
-      cursor:pointer;
-    }
-    #preview{
-      margin-top:18px;
-      display:none;
-    }
-    iframe{
-      width:100%;
-      height:260px;
-      border-radius:14px;
-      border:none;
-      box-shadow:0 3px 10px rgba(0,0,0,0.06);
-    }
-    #downloadBtn{
-      display:none;
-      background:#222;
-      color:white;
-    }
-    #downloadBtn:hover{ background:black; }
-    .error{
-      color:#d00;
-      font-size:14px;
-      background:#ffe5e5;
-      padding:10px;
-      border-radius:8px;
-      margin-top:10px;
-    }
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts & Reels Downloader</title>
+<style>
+  body{
+    font-family:Poppins,sans-serif;
+    background:#fafafa;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    margin:0;
+  }
+  .card{
+    background:white;
+    width:90%;
+    max-width:420px;
+    padding:22px;
+    border-radius:16px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.08);
+    text-align:center;
+  }
+  input{
+    width:95%;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:12px;
+    font-size:15px;
+    outline:none;
+  }
+  button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:500;
+    margin-top:15px;
+    cursor:pointer;
+  }
+  #preview{
+    margin-top:18px;
+    display:none;
+  }
+  iframe{
+    width:100%;
+    height:260px;
+    border-radius:14px;
+    border:none;
+    box-shadow:0 3px 10px rgba(0,0,0,0.06);
+  }
+  #downloadBtn{
+    display:none;
+    background:#222;
+    color:white;
+  }
+  #downloadBtn:hover{ background:black; }
+  .error{
+    color:#d00;
+    font-size:14px;
+    background:#ffe5e5;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+  }
+</style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Shorts / Reels Downloader</h2>
+  <h2>YouTube Shorts / Instagram Reels Downloader</h2>
 
   <form onsubmit="event.preventDefault(); previewVideo();">
-    <input type="text" id="videoURL" placeholder="Paste YouTube Shorts or Instagram Reel URL..." required />
+    <input type="text" id="videoURL" placeholder="Paste Reel/Shorts URL..." required />
     <button type="submit" style="background:red;color:white;">Preview</button>
   </form>
 
   <div id="preview"></div>
-
   <button id="downloadBtn" onclick="downloadVideo()">Download Now</button>
 
-  <p style="font-size:13px;color:#777;margin-top:16px;">Made with ❤ by Vishnu</p>
+  <p class="footer">Made with ❤ by Vishnu</p>
 </div>
 
 <script>
 function extractYouTubeId(url) {
   try {
+    let videoId = null;
     if (url.includes("shorts/")) {
-      return url.split("shorts/")[1].split("?")[0];
+      videoId = url.split("shorts/")[1].split("?")[0];
+    } else if (url.includes("watch?v=")) {
+      videoId = url.split("v=")[1].split("&")[0];
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1].split("?")[0];
     }
-    if (url.includes("watch?v=")) {
-      return new URL(url).searchParams.get("v");
-    }
-    if (url.includes("youtu.be/")) {
-      return url.split("youtu.be/")[1].split("?")[0];
-    }
-  } catch (e) {}
-  return null;
+    return videoId;
+  } catch (e) {
+    return null;
+  }
 }
 
-function previewVideo() {
+function previewVideo(){
   const url = document.getElementById("videoURL").value.trim();
   const preview = document.getElementById("preview");
 
   const ytId = extractYouTubeId(url);
 
-  if (ytId) {
+  if(ytId){
     preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe>`;
-    preview.style.display = "block";
-    document.getElementById("downloadBtn").style.display = "block";
-    return;
+    preview.style.display="block";
+    document.getElementById("downloadBtn").style.display="block";
+  } else if(url.includes("instagram.com")){
+    preview.innerHTML = `<video controls style="width:100%;border-radius:14px;"><source src="${url}" type="video/mp4"></video>`;
+    preview.style.display="block";
+    document.getElementById("downloadBtn").style.display="block";
+  } else {
+    preview.innerHTML = `<p class="error">Preview not supported</p>`;
+    preview.style.display="block";
   }
-
-  if (url.includes("instagram.com")) {
-    preview.innerHTML = `<video controls style="width:100%;border-radius:14px;">
-      <source src="${url}" type="video/mp4">
-    </video>`;
-    preview.style.display = "block";
-    document.getElementById("downloadBtn").style.display = "block";
-    return;
-  }
-
-  preview.innerHTML = `<p class="error">Invalid or unsupported URL</p>`;
-  preview.style.display = "block";
 }
 
-async function downloadVideo() {
+async function downloadVideo(){
   const url = document.getElementById("videoURL").value.trim();
   const ytId = extractYouTubeId(url);
 
-  // Try server first
+  // Server ko try karo
   const res = await fetch("/api/download?url=" + encodeURIComponent(url));
   const data = await res.json();
 
-  // Server fallback → browser download
-  if (data.fallback === "browser") {
+  // Agar fallback = browser → direct download karo
+  if(data.fallback === "browser"){
     if (!ytId) {
-      alert("No check ID (Invalid YouTube URL)");
+      alert("No check ID (Video ID not found)");
       return;
     }
 
-    // Browser-safe Shorts download
     const mirror = `https://inv.nadeko.net/latest_version?id=${ytId}&itag=22`;
     const a = document.createElement("a");
     a.href = mirror;
-    a.download = "shorts-video.mp4";
+    a.download = "downloaded-video.mp4";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     return;
   }
 
-  if (data.error) {
+  // Agar server se file mili ho to vo download hogi, warna error dikhao
+  if(data.error){
     alert(data.error);
   }
 }
 </script>
-
 
 </body>
 </html>
