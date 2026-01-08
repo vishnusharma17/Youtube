@@ -123,10 +123,27 @@
     document.getElementById("downloadBtn").style.display="block";
   }
 
-  async function downloadVideo(){
-    const url = document.getElementById("videoURL").value.trim();
-    window.location.href = "/api/download?url=" + encodeURIComponent(url);
+ async function downloadVideo() {
+  const url = document.getElementById("videoURL").value.trim();
+  const apiURL = "/api/download?url=" + encodeURIComponent(url);
+
+  const res = await fetch(apiURL);
+  const data = await res.json();
+
+  // Agar fallback aya ho to browser me direct download karo
+  if (data.fallback === "browser") {
+    const videoId = url.split("shorts/")[1].split("?")[0];
+    const cmd = `https://inv.nadeko.net/latest_version?id=${videoId}&itag=22`;
+    const a = document.createElement("a");
+    a.href = cmd;
+    a.download = "shorts-video.mp4";
+    a.click();
+    return;
   }
+
+  alert("Download failed: " + data.error);
+}
+
 </script>
 
 </body>
